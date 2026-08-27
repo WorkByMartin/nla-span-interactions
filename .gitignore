@@ -1,0 +1,23 @@
+# Claude staging. Everything starts here; nothing in it is ever committed.
+_scratch/
+
+# Heavy artefacts. Register them in ASSETS.yaml and ship via a GitHub release instead.
+**/weights/
+**/activations*.pt
+**/*.safetensors
+**/checkpoint-*/
+**/hf_cache/
+**/logs/
+
+# Hub listing cache built by draw_corpus.py
+.ffw_cache/
+
+# Environment and bytecode
+.venv/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Secrets
+.env
