@@ -1,6 +1,6 @@
 """Draw the document sample this project runs on. See README.md.
 
-    python draw_corpus.py --n 5000 --out results/corpus.parquet
+    python draw_corpus.py --n 5000 --out results/ffw-5k_corpus.parquet
 """
 import argparse, hashlib, json, random, re, threading, time
 from concurrent.futures import ThreadPoolExecutor
@@ -144,7 +144,7 @@ def fetch_window(path, size, seed):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--n", type=int, default=5000, help="documents to draw")
-    ap.add_argument("--out", default="corpus.parquet")
+    ap.add_argument("--out", default="results/ffw-5k_corpus.parquet")
     ap.add_argument("--threads", type=int, default=10)
     ap.add_argument("--cache", default=str(Path(__file__).parent / ".ffw_cache"),
                     help="where the domain table and shard index are cached")
@@ -166,7 +166,8 @@ def main():
     master = random.Random(SEED)
     rows, seen = [], set()
     stats = {"windows": 0, "documents_seen": 0, "rejected_regex": 0,
-             "rejected_too_short": 0, "rejected_duplicate": 0, "bytes": 0}
+             "rejected_too_short": 0, "rejected_duplicate": 0,
+             "rejected_domain_mismatch": 0, "bytes": 0}
 
     def job(k):
         d = picks[k]
@@ -198,7 +199,10 @@ def main():
                         continue
                     stats["documents_seen"] += 1
                     gid, text = doc.get("global_id"), doc.get("text") or ""
-                    if doc.get("domain") in EXCLUDED_DOMAINS or gid in seen:
+                    if doc.get("domain") in EXCLUDED_DOMAINS:
+                        stats["rejected_domain_mismatch"] += 1
+                        continue
+                    if gid in seen:
                         stats["rejected_duplicate"] += 1
                         continue
                     if EXCLUDE_RE.search(text):

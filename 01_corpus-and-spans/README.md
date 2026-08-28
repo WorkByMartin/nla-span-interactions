@@ -3,7 +3,7 @@
 Draws the document sample the rest of the work runs on.
 
 ```bash
-python draw_corpus.py --n 5000 --out results/corpus.parquet
+python draw_corpus.py --n 5000 --out results/ffw-5k_corpus.parquet
 ```
 
 No GPU. About 440 MB of transfer for 5000 documents, plus a 40 second listing of the dataset's shards on first run, cached in `.ffw_cache/`.

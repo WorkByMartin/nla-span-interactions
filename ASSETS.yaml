@@ -1,0 +1,94 @@
+# ---------------------------------------------------------------------------
+# Models and adapters
+# ---------------------------------------------------------------------------
+
+qwen36-27b_base_model:
+  kind:        model
+  status:      held
+  what:        Target model M. Layer-42 residual stream activations are extracted from this and fed to the NLA. 64-layer Qwen3_5ForCausalLM, d_model 5120, vocab 248320.
+  produced_by: upstream Qwen
+  location:    https://huggingface.co/Qwen/Qwen3.6-27B @ 6a9e13bd6fc8f0983b9b99948120bc37f49c13e9
+  size:        55.6 GB
+  manifest_sha256: af2eabd8d495584a7fee3acb3fff76d10f87ec050ff6abd8b4fcc01b31f2933e
+  date:        2026-08-28
+
+qwen36-27b_av-sft_model:
+  kind:        model
+  status:      held
+  what:        Activation verbaliser after supervised fine-tuning, shipped as merged full weights (64 layers, 2 safetensors shards). Trained as LoRA then merged, so it loads with from_pretrained and not PEFT. Doubles as the KL reference distribution, being the adapter-off arm of every KL comparison. Held-out FVE 53.0%.
+  produced_by: Celeste Selder (MATS), via EasyNLA. Merge of av_warmstart_lora into the base.
+  location:    https://huggingface.co/ceselder/qwen3.6-27b-nla-rl @ 5a13b7ec21a69fcdd0fb24d5edbe96a92aef4b9f, subdir av_base/
+  size:        53.8 GB
+  manifest_sha256: 6bb1cf8421191e71807483c1d9d5c60d6beaf42331c6156b02f32d769b6d0585
+  date:        2026-07-21
+  consumes:    [qwen36-27b_base_model, ffw-100k_corpus]
+
+qwen36-27b_av-rl-s600_adapter:
+  kind:        adapter
+  status:      held
+  what:        GRPO-RL LoRA adapter at step 600, r=64 alpha=16 rslora, attaches to qwen36-27b_av-sft_model. Adapter on is the RL verbaliser, adapter off is the SFT reference. Step 600 is chosen because qwen36-27b_ar-l43-s600_model was saved at that step, so the reconstructor scores verbalisations from the policy it was saved alongside rather than from a different one. No published FVE at this step; the logged trajectory stops at 590 with 77.5 and the mean of its last five points is 77.0.
+  produced_by: Celeste Selder (MATS), via EasyNLA. GRPO, kl_beta 0.01, k3 estimator, reference av_base.
+  location:    https://huggingface.co/ceselder/qwen3.6-27b-nla-rl @ 5a13b7ec21a69fcdd0fb24d5edbe96a92aef4b9f, subdir av_rl_adapters/iter_000600/
+  size:        1.87 GB
+  manifest_sha256: 201e60e2c58e8d1d6c1916bf2e7d71b80a00013ca6aaba8c846f3bf668c66008
+  sha256:      5efe6eb2273d2baeed028bd0a8a6c766014df139e2af6355d585be8fb5d8752e
+  date:        2026-07-21
+  consumes:    [qwen36-27b_av-sft_model, ffw-100k_corpus]
+
+qwen36-27b_ar-l43-s600_model:
+  kind:        model
+  status:      held
+  what:        Activation reconstructor saved at RL step 600, per its own saved_at_step.txt. Reads a verbalisation and predicts the layer-42 activation it came from, giving the FVE that every result in this project is a delta of. A 43-layer truncated stack, not the 64-layer base architecture, so it is a distinct model rather than an adapter, despite also having been LoRA-trained. Ships as one 35.28 GB safetensors plus a separate 0.10 GB value head, a 5120x5120 fp32 matrix with no bias, which must be loaded alongside it. Its tokenizer lives in ar_reconstructor_sft_init/, not beside the weights.
+  produced_by: Celeste Selder (MATS), via EasyNLA
+  location:    https://huggingface.co/ceselder/qwen3.6-27b-nla-rl @ 5a13b7ec21a69fcdd0fb24d5edbe96a92aef4b9f, subdir ar_reconstructor/
+  size:        35.4 GB
+  manifest_sha256: 43918ce745273bdb199fbc3fb0877cb0b5dcdab19e8885be9d2630aea028669d
+  date:        2026-07-21
+  consumes:    [qwen36-27b_base_model, ffw-100k_corpus]
+
+# ---------------------------------------------------------------------------
+# Corpora
+# ---------------------------------------------------------------------------
+
+ffw-100k_corpus:
+  kind:        corpus
+  status:      unobtainable
+  what:        The corpus the NLA was actually trained on. FineFineWeb documents 0 to 100000, 10 token positions per document. Recorded for lineage only. The parquet was never published and FineFineWeb has no global document order, so this slice cannot be reconstructed; ffw-5k_corpus approximates its domain shape and nothing else.
+  produced_by: upstream m-a-p/FineFineWeb (Apache-2.0), sliced per ceselder nla_meta.yaml
+  location:    unpublished. Slice spec only, from av_base/nla_meta.yaml
+  size:        100k docs, 1M activation positions
+  date:        2026-07-05
+
+ffw-5k_corpus:
+  kind:        corpus
+  status:      held
+  what:        The document sample this project runs on. 5000 FineFineWeb documents drawn by HTTP byte range, picking a domain with probability proportional to its document count, then a shard, then a random 256 KB window. 60 domains in play, 6 excluded as nearest the material that could trigger residual safety behaviour, plus a 27-pattern regex filter over the text. One read-out position per document, uniform over positions with at least 128 tokens of prior context. Seed 0, per-document randomness from blake2b of the document id.
+  produced_by: 01_corpus-and-spans/draw_corpus.py
+  location:    01_corpus-and-spans/results/ffw-5k_corpus.parquet
+  sha256:      43cc3d1d74afafba18e067914f3045263ccb5bbac1408a2cfa54d7ec9761993a
+  date:        2026-08-28
+  consumes:    []
+
+# ---------------------------------------------------------------------------
+# Traces
+# ---------------------------------------------------------------------------
+
+ffw-5k_pilot_traces:
+  kind:        traces
+  status:      pending
+  what:        100 documents from ffw-5k_corpus carried through the whole NLA once. Each row holds the layer-42 activation, the verbalisation, the reconstruction, FVE, and per-token KL between the RL verbaliser and the SFT reference under identical scaffolding. The set on which the KL threshold is chosen and the substitution fillers are vetted, so decisions are made here and not reported from here.
+  produced_by: pending
+  location:    pending
+  sha256:      pending
+  date:        pending
+  consumes:    [ffw-5k_corpus, qwen36-27b_base_model, qwen36-27b_av-sft_model, qwen36-27b_av-rl-s600_adapter, qwen36-27b_ar-l43-s600_model]
+
+ffw-5k_main_traces:
+  kind:        traces
+  status:      pending
+  what:        The frozen set the interaction results are computed on. Same schema as ffw-5k_pilot_traces, sized against available compute and filtered to 5 <= span count <= 12. Every verbalisation carries both the KL-derived span coding and the random-boundary null coding.
+  produced_by: pending
+  location:    pending
+  sha256:      pending
+  date:        pending
+  consumes:    [ffw-5k_corpus, qwen36-27b_base_model, qwen36-27b_av-sft_model, qwen36-27b_av-rl-s600_adapter, qwen36-27b_ar-l43-s600_model]
