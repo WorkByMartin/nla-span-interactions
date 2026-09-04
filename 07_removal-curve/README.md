@@ -103,6 +103,7 @@ Run 9 ran on an NVIDIA H100 80GB HBM3 with 132 SMs, under torch 2.6.0+cu124 with
 removal_curve.py            the GPU run that wrote run 9
 removal_analysis.py         the tables and the figure, read from the store
 results/statistics.md       the printed report, nine sections between the setup header and the figure list
-results/removal_curves.png  FVE against fraction removed, every curve type on one axis, mean with a 95% confidence band over the 20 documents
+results/removal_curves.png  FVE against fraction removed under random order, one mean curve per primitive with a 95% confidence band over the 20 documents
+results/truncation_front_vs_back.png  FVE against fraction removed under deletion, front and back truncation, one faint line per document and the mean in bold
 results/removal_first_steps.png  the first ten words removed, in FVE points lost, same encoding
 ```

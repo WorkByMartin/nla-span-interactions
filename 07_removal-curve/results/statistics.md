@@ -110,5 +110,6 @@ random filler: mean dFVE -0.0021, mean |dFVE| 0.0036, n 160
 
 ## Figures
 
-removal_curves.png: FVE against fraction removed, mean per curve type with a 95% confidence band for the mean over the 20 documents (each document's permutations averaged first); colour is the primitive, dashed is front truncation, dotted is back; the dotted horizontal line is the mean FVE with every eligible word deleted
+removal_curves.png: FVE against fraction removed under random order, one mean curve per primitive with a 95% confidence band for the mean over the 20 documents (each document's permutations averaged first); the dotted horizontal line is the mean FVE with every eligible word deleted
+truncation_front_vs_back.png: FVE against fraction removed under deletion, truncating from the front and from the back, one faint line per document and the mean over the 20 documents in bold
 removal_first_steps.png: the same seven curve types over the first ten words removed, in FVE points lost (100 x the drop in FVE), mean over the 20 documents

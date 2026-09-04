@@ -148,8 +148,8 @@ def main():
         L.append(f"| {doc} | {base.set_index('doc_id').loc[doc, 'base_fve']:.3f} | {ends[doc]:.3f} | {ends[doc] - base.set_index('doc_id').loc[doc, 'base_fve']:+.3f} | {first.mean() * n:+.3f} |")
     L.append("")
 
-    # figure: every mean curve on one axis, with a 95% confidence band for the
-    # mean over documents (each document's permutations averaged first)
+    # figure: the three random-order curves on one axis, with a 95% confidence band
+    # for the mean over documents (each document's permutations averaged first)
     figstyle.apply()
     fine = np.linspace(0, 1, 101)
     def on_fine(g):
@@ -165,7 +165,7 @@ def main():
     floor = float(ends.mean())
     fig, ax = plt.subplots(figsize=(8.0, 5.0))
     fig.subplots_adjust(left=0.10, right=0.97, top=0.95, bottom=0.12)
-    for c in (2, 5, 0, 4, 3, 6, 1):          # legend order follows the curves at 60% removed
+    for c in (0, 4, 1):                      # legend order follows the curves at 60% removed
         per_doc = np.array([np.mean([on_fine(g) for _, g in gd.groupby("perm")], axis=0)
                             for _, gd in d[d["curve"] == c].groupby("doc_id")])
         m = per_doc.mean(axis=0) + b0
@@ -180,6 +180,25 @@ def main():
     ax.set_ylabel("FVE, mean over documents, 95% confidence band")
     ax.legend(loc="lower left")
     figstyle.save(fig, out / "removal_curves.png")
+    # third figure: front against back truncation under deletion, one faint line per
+    # document and the mean over documents in bold
+    fig, ax = plt.subplots(figsize=(7.5, 4.4))
+    fig.subplots_adjust(left=0.10, right=0.98, top=0.95, bottom=0.13)
+    tcol = {2: figstyle.SWAP, 3: "#D55E00"}
+    tname = {2: "deleting from the front", 3: "deleting from the back"}
+    for c in (2, 3):
+        ys = []
+        for _, g in d[d["curve"] == c].groupby("doc_id"):
+            g = g.sort_values("frac")
+            x = np.concatenate([[0], g["frac"].values]); y = np.concatenate([[g["base_fve"].iloc[0]], g["fve"].values])
+            ax.plot(x, y, color=tcol[c], lw=0.7, alpha=0.28)
+            ys.append(np.interp(fine, x, y))
+        ax.plot(fine, np.mean(ys, axis=0), color=tcol[c], lw=2.4, label=tname[c])
+    ax.axhline(0, color="#999999", lw=0.8)
+    ax.set_xlim(0, 1); ax.grid(axis="y", alpha=0.25, lw=0.5)
+    ax.set_xlabel("fraction of eligible words removed"); ax.set_ylabel("FVE")
+    ax.legend(loc="lower left", title=f"mean over {len(docs)} documents; faint lines are the documents")
+    figstyle.save(fig, out / "truncation_front_vs_back.png")
     # second figure: the first ten removals step by step, in FVE points lost
     steps = np.arange(0, 11)
     fig, ax = plt.subplots(figsize=(8.0, 4.4))
@@ -198,10 +217,11 @@ def main():
     ax.set_ylabel("FVE points lost, mean over documents")
     ax.legend(loc="upper left", handlelength=4.0)
     figstyle.save(fig, out / "removal_first_steps.png")
-    L += ["## Figures", "", f"removal_curves.png: FVE against fraction removed, mean per curve type with a 95% "
-          f"confidence band for the mean over the {len(docs)} documents (each document's permutations averaged "
-          f"first); colour is the primitive, dashed is front truncation, dotted is back; the dotted horizontal "
-          f"line is the mean FVE with every eligible word deleted",
+    L += ["## Figures", "", f"removal_curves.png: FVE against fraction removed under random order, one mean curve per "
+          f"primitive with a 95% confidence band for the mean over the {len(docs)} documents (each document's "
+          f"permutations averaged first); the dotted horizontal line is the mean FVE with every eligible word deleted",
+          f"truncation_front_vs_back.png: FVE against fraction removed under deletion, truncating from the front and "
+          f"from the back, one faint line per document and the mean over the {len(docs)} documents in bold",
           f"removal_first_steps.png: the same seven curve types over the first ten words removed, in FVE points "
           f"lost (100 x the drop in FVE), mean over the {len(docs)} documents", ""]
     (out / "statistics.md").write_text("\n".join(L))
