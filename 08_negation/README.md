@@ -6,7 +6,7 @@ Measures what turning a negation round costs the reconstruction, against control
 python negation_analysis.py --db ../db/ffw_span-ablation_database.sqlite --run 10
 ```
 
-No GPU, and no model files. It reads run 10 of the `ffw_span-ablation_database` asset and writes every number below to `results/statistics.md`, which it prints and rewrites on every run. One figure goes to `results/` beside it.
+No GPU, and no model files. It reads run 10 of the `ffw_span-ablation_database` asset and writes every number below to `results/statistics.md`, which it prints and rewrites on every run. One figure goes to `results/` beside it, and `negation_by_type.py` draws a second, breaking every condition out by negator type.
 
 ## The six conditions
 
@@ -107,7 +107,9 @@ Run 10 ran on an NVIDIA H100 80GB HBM3 with 132 SMs, under torch 2.6.0+cu124 wit
 ```
 negation.py               the GPU run that wrote run 10
 negation_analysis.py      the tables and the figure, read from the store
+negation_by_type.py       every condition broken out by negator type, read from the store
 results/statistics.md     the printed report, seven sections between the setup header and the figure list
 results/negation_by_condition.png   mean FVE points lost per condition with 95% bootstrap intervals
 results/negation_flip_vs_swap.png   per-instance flip against governed-word swap, with the correlation
+results/negation_by_type.png        mean FVE points lost per negator type and condition, bootstrap intervals
 ```

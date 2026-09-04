@@ -5,7 +5,6 @@ routine live here so that every figure in the repo is drawn the same way.
 """
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 import matplotlib
@@ -104,18 +103,12 @@ def floor_handle():
                       label=f"harness floor, +-{FLOOR} points")
 
 
-def save(fig, path, copies=()):
-    """Write the figure, then copy the file to each of `copies` (dirs or files)."""
+def save(fig, path):
+    """Write the figure to `path`, making its directory if it is not there."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=DPI)
     plt.close(fig)
-    for c in copies:
-        c = Path(c)
-        if c.is_dir() or not c.suffix:
-            c.mkdir(parents=True, exist_ok=True)
-            c = c / path.name
-        shutil.copyfile(path, c)
     return path
 
 

@@ -35,8 +35,10 @@ The GPU scripts that wrote each run, their arguments, and the assets they consum
 ## Layout
 
 ```
-NN_<slug>/            one piece of work: source .py, tests, examples/, results/, README.md
+NN_<slug>/            one piece of work: source .py, tests, results/, README.md
 db/                   the store: db.py, dbio.py, migrations/, loaders, snapshot.py
+figstyle.py           the one figure style every experiment draws in
+store.py              the store's path and the text layout the printed reports share
 ASSETS.yaml           the asset registry
 requirements.txt
 ```

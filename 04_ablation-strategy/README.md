@@ -6,7 +6,7 @@ Measures the same word-level ablation three more ways, so the masked-LM marginal
 python swap_analysis.py --run 5
 ```
 
-No GPU, and no model files. It reads run 5 of the `ffw_span-ablation_database` asset, and run 3 alongside it for the masked-LM comparison, and writes every number below to `results/statistics.md`, which it prints and rewrites on every run. Three figures go to `results/` beside it.
+No GPU, and no model files. It reads run 5 of the `ffw_span-ablation_database` asset, and run 3 alongside it for the masked-LM comparison, and writes every number below to `results/statistics.md`, which it prints and rewrites on every run. Three figures go to `results/` beside it, and `effect_by_word_class.py` draws a fourth from the per-class table, checking every cell of it against `results/statistics.md` first.
 
 ## The three arms
 
@@ -94,8 +94,10 @@ swap_ablation.py                   the GPU run that wrote run 5
 swap_analysis.py                   the tables and the three figures, read from the store
 test_swap_stub.py                  the whole edit plan on CPU over a throwaway store, no reconstructor
 test_swap_analysis_stub.py         the report over a synthetic store with a planted span effect
+effect_by_word_class.py            the per-class signed means recomputed, checked against statistics.md and drawn
 results/statistics.md              the printed report, fourteen sections between the setup header and the figure list
 results/swap_se_vs_draws.png       standard error of a per-span swap mean against draw count
 results/swap_vs_mlm_scatter.png    per-span mean effect, swap against masked-LM, symmetric log axes
 results/budget_draws_vs_spans.png  variance of a class-level mean as a fixed pass budget moves onto draws
+results/effect_by_word_class.png   signed mean effect by word class, swap and deletion, clustered intervals
 ```

@@ -6,7 +6,7 @@ Measures whether two words joined by a dependency arc interact more, when both a
 python pair_analysis.py --run 7
 ```
 
-No GPU, and no model files. It reads run 7 of the `ffw_span-ablation_database` asset, takes the pair table from that run's row in the `runs` table, checks it against the `pair-ablation/arc+control` edges in `relations` before computing anything, and writes every number below to `results/statistics.md`, which it prints and rewrites on every run. Two figures go to `results/` beside it, and `examples/arc_vs_control_by_type.py` draws a third from the printed per-type table.
+No GPU, and no model files. It reads run 7 of the `ffw_span-ablation_database` asset, takes the pair table from that run's row in the `runs` table, checks it against the `pair-ablation/arc+control` edges in `relations` before computing anything, and writes every number below to `results/statistics.md`, which it prints and rewrites on every run. Two figures go to `results/` beside it, and `arc_vs_control_by_type.py` draws a third from the printed per-type table.
 
 ## What is ablated
 
@@ -126,12 +126,9 @@ pair_ablation.py                        the GPU run that wrote run 7
 pair_analysis.py                        the tables and two figures, read from the store
 test_pair_stub.py                       the whole edit plan on CPU over a throwaway store, no reconstructor
 test_pair_analysis_stub.py              the report over a synthetic store with a planted interaction
-examples/arc_vs_control_by_type.py      the per-type table redrawn with each dependency label glossed
-examples/arc_vs_control_by_type.png     a copy of the figure it writes to results/
-examples/one_pair_four_passes.py        one arc pair and its control, the four passes each
-examples/one_pair_four_passes.md        the text that script prints
+arc_vs_control_by_type.py               the per-type table redrawn with each dependency label glossed
 results/statistics.md                   the printed report, nine sections between the setup header and the figure list
 results/pair_arc_vs_control.png         interaction on an arc against its matched control, one row per dep type
 results/pair_interaction_vs_distance.png  interaction against token distance, arcs and controls binned separately
-results/arc_vs_control_by_type.png      the per-type figure written by the example
+results/arc_vs_control_by_type.png      the per-type figure, written by arc_vs_control_by_type.py
 ```

@@ -4,9 +4,9 @@
     python effect_by_word_class.py
 
 Recomputes the per-class signed mean effect table from the store, checks it
-against the same table in ../results/statistics.md digit for digit, and draws it
-as a dot and interval chart. Prints the report and writes the same text to
-effect_by_word_class.md and the figure to ../results/effect_by_word_class.png. No GPU.
+against the same table in results/statistics.md digit for digit, and draws it as
+a dot and interval chart. Prints the report and writes the figure to
+results/effect_by_word_class.png. No GPU.
 """
 from __future__ import annotations
 
@@ -21,17 +21,19 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
-import _common as K            # noqa: E402
 import swap_analysis as SA     # noqa: E402
 import figstyle                # noqa: E402
+import store                   # noqa: E402
 
 SWAP_RUN = 5
 MLM_RUN = 3
-STATS = HERE.parent / "results" / "statistics.md"
+RESULTS = HERE / "results"
+STATS = RESULTS / "statistics.md"
 SECTION = "PER-CLASS SIGNED MEAN EFFECT"
 ARMS = ["swap", "MLM all", "MLM non-id", "deletion"]
-CHARTED = ["swap", "MLM non-id", "deletion"]
-COLOUR = {"swap": K.C_SWAP, "MLM non-id": K.C_MLM, "deletion": K.C_DEL}
+CHARTED = ["swap", "deletion"]
+COLOUR = {"swap": figstyle.SWAP, "MLM non-id": figstyle.MLM,
+          "deletion": figstyle.DELETION}
 NICE = {"swap": "corpus swap", "MLM non-id": "masked-LM, non-identical draws",
         "deletion": "deletion"}
 CELL = re.compile(r"([+-]\d+\.\d{3}) \+-\s+(\d+\.\d{3})")
@@ -108,7 +110,7 @@ def parse_statistics(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--db", default=str(K.DB_DEFAULT))
+    ap.add_argument("--db", default=str(store.DB_DEFAULT))
     args = ap.parse_args()
     figstyle.apply()
 
@@ -140,7 +142,6 @@ def main():
     order = sorted(table, key=lambda l: -table[l]["swap"][0])
 
     # ------------------------------------------------------------------ text
-    K.tee_to(K.HERE / "effect_by_word_class.md")
     print("# Effect by word class")
     print()
     print(f"The signed mean effect of an ablation, by the coarse part of "
@@ -161,7 +162,7 @@ def main():
     print(f"back, which is 45 per cent of them, and is the column the chart "
           f"uses.")
     print()
-    print(K.md_table(
+    print(store.md_table(
         ["class", "spans"] + [f"{a} (FVE points)" for a in ARMS],
         [[label, table[label]["n_spans"]]
          + [f"{table[label][a][0]:+.3f} +- {table[label][a][1]:.3f}"
@@ -175,20 +176,19 @@ def main():
         print(f"## Check against {STATS.name}: FAILED")
         print()
         print(f"{len(diffs)} cell(s) disagree with the table printed in "
-              f"../results/{STATS.name}:")
+              f"results/{STATS.name}:")
         print()
         for d in diffs:
             print(f"  - {d}")
         print()
         print("No figure was written. The disagreement is the result.")
-        K.untee()
         raise SystemExit(1)
     print(f"## Check against {STATS.name}: matched")
     print()
     print(f"Every one of the {len(table) * len(ARMS)} cells recomputed here "
           f"({len(table)} classes x {len(ARMS)} arms), and every")
     print(f"span count, is identical to the table printed in "
-          f"../results/{STATS.name} at the three decimal")
+          f"results/{STATS.name} at the three decimal")
     print(f"places that file prints. The chart is drawn from the recomputed "
           f"values.")
     print()
@@ -203,12 +203,12 @@ def main():
     hi = max(m + se for m, se in inside)
     pad = 0.08 * (hi - lo)
     xlim = (lo - pad, hi + pad)
-    offs = {"swap": -0.24, "MLM non-id": 0.0, "deletion": 0.24}
-    marks = {"swap": "o", "MLM non-id": "s", "deletion": "D"}
+    offs = {"swap": -0.16, "deletion": 0.16}
+    marks = {"swap": "o", "deletion": "D"}
 
     fig, ax = plt.subplots(figsize=(8.0, 6.6))
     fig.subplots_adjust(left=0.28, right=0.965, top=0.90, bottom=0.10)
-    figstyle.floor(ax)
+    ax.axvline(0, color="#999999", lw=0.8, zorder=1.5)
     clipped = []
     for i, label in enumerate(order):
         if i % 2 == 0:
@@ -240,17 +240,15 @@ def main():
     ax.spines["left"].set_visible(False)
     handles = [plt.Line2D([], [], color=COLOUR[a], marker=marks[a], ls="none",
                           ms=5.5, label=NICE[a]) for a in CHARTED]
-    handles.append(figstyle.floor_handle())
     ax.legend(handles=handles, fontsize=8.5, frameon=False, ncol=2,
               loc="lower center", bbox_to_anchor=(0.5, 1.005))
     ax.set_ylabel("word class, and the number of spans in it", fontsize=9.5)
-    figstyle.save(fig, K.RESULTS / "effect_by_word_class.png", copies=[K.HERE])
+    figstyle.save(fig, RESULTS / "effect_by_word_class.png")
 
-    print("Figure: ../results/effect_by_word_class.png, copied here. One row per class, sorted by the swap "
-          "effect, three markers per row")
-    print("with a document-clustered standard error either side, a line at "
-          "zero and the harness floor")
-    print("shaded.")
+    print("Figure: results/effect_by_word_class.png. One row per class, "
+          "sorted by the swap effect, a swap and a deletion marker per row")
+    print("with a document-clustered standard error either side and a line at "
+          "zero.")
     if clipped:
         print()
         for label, arm, m, se, _ in clipped:
@@ -259,7 +257,6 @@ def main():
                   f"at the edge.")
         print("  The axis is set from every other point so the rest of the "
               "classes stay readable.")
-    K.untee()
 
 
 if __name__ == "__main__":

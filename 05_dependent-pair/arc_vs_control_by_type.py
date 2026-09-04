@@ -3,9 +3,9 @@
 
     python arc_vs_control_by_type.py
 
-Reads the PER DEP TYPE table from ../results/statistics.md, which pair_analysis.py
+Reads the PER DEP TYPE table from results/statistics.md, which pair_analysis.py
 wrote from the store, and draws it with each dependency label glossed. Writes
-../results/arc_vs_control_by_type.png and a copy here. No GPU.
+results/arc_vs_control_by_type.png. No GPU.
 """
 from __future__ import annotations
 
@@ -14,10 +14,11 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent.parent))
+sys.path.insert(0, str(HERE.parent))
 import figstyle  # noqa: E402
 
-STATS = HERE.parent / "results" / "statistics.md"
+RESULTS = HERE / "results"
+STATS = RESULTS / "statistics.md"
 ROW = re.compile(r"^\s*(\w+)\s+(\d+)\s+([+-]\d+\.\d+)\s+(\d+\.\d+)\s+(\d+)\s+"
                  r"([+-]\d+\.\d+)\s+(\d+\.\d+)\s+([+-]\d+\.\d+)\s+(\d+\.\d+)\s*$")
 
@@ -71,8 +72,7 @@ def main():
     ax.legend(handles=handles, ncol=2, loc="lower center",
               bbox_to_anchor=(0.5, 1.0))
     ax.set_ylabel("dependency type, and the number of arc pairs")
-    figstyle.save(fig, HERE.parent / "results" / "arc_vs_control_by_type.png",
-                  copies=[HERE])
+    figstyle.save(fig, RESULTS / "arc_vs_control_by_type.png")
     print(f"{len(rows)} dependency types read from {STATS.name}; standard errors "
           f"are clustered on document over 100 documents")
 

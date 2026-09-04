@@ -75,8 +75,6 @@ The consistency-check section reports the same quantity on the same scale as 05,
 
 Each figure is one document's interaction matrix in reading order, symmetric by construction, with the spaCy head arcs over the same words drawn above it. `interaction_matrix_doc240.png` has 124 words and 7626 cells, 2608 of them outside two standard errors, 120 head arcs and a colour limit of +-0.288 points. `interaction_matrix_doc621.png` has 132 words, 8646 cells, 3555 outside, 128 arcs, limit +-0.562. `interaction_matrix_doc1664.png` has 138 words, 9453 cells, 3090 outside, 132 arcs, limit +-0.401. `interaction_matrix_doc2592.png` has 119 words, 7021 cells, 2027 outside, 115 arcs, limit +-0.394. `interaction_matrix_doc4126.png` has 132 words, 8646 cells, 5268 outside, 128 arcs, limit +-0.110.
 
-`results/three_pairs_one_sentence.png` is written by the worked example in `examples/`, not by the analysis.
-
 ## Regenerating run 8
 
 The GPU side is `tree_vs_linear.py`, which selects the documents, plans every single and every joint edit, checks each splice round-trips, runs the reconstructor forwards and writes each variant with its measurements back to the store.
@@ -99,14 +97,10 @@ tree_vs_linear.py                          the GPU run that wrote run 8
 tree_vs_linear_analysis.py                 the tables and the five figures, read from the store
 test_tree_vs_linear_stub.py                the whole edit plan on CPU over a throwaway store, no reconstructor
 test_tree_vs_linear_analysis_stub.py       the report over a synthetic store with a planted on-arc interaction
-examples/three_pairs_one_sentence.py       three pairs from one sentence of document 1664, with their interactions
-examples/three_pairs_one_sentence.md       what that example prints
-examples/three_pairs_one_sentence.png      its figure, copied beside the markdown
 results/statistics.md                      the printed report, eleven sections between the setup header and the figure list
 results/interaction_matrix_doc240.png      document 240's interaction matrix, head arcs above it
 results/interaction_matrix_doc621.png      document 621's interaction matrix, head arcs above it
 results/interaction_matrix_doc1664.png     document 1664's interaction matrix, head arcs above it
 results/interaction_matrix_doc2592.png     document 2592's interaction matrix, head arcs above it
 results/interaction_matrix_doc4126.png     document 4126's interaction matrix, head arcs above it
-results/three_pairs_one_sentence.png       the worked example's figure
 ```
