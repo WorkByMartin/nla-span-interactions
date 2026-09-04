@@ -19,3 +19,16 @@ Six domains are excluded (`weapons_science`, `nuclear_science`, `chemistry`, `bi
 One row per document: `doc_uid`, `global_id`, `url`, `domain`, `round`, `n_tokens`, `token_position`, `shard`, `window_start`, `text`. Draw parameters, seed and rejection counts are in the file's Parquet metadata.
 
 Seed and filters are constants at the top of `draw_corpus.py`, and positions derive from hashes of document ids rather than process state, so the same command returns the same documents.
+
+## The traces
+
+`extract_traces.py` carries a sub-sample of the draw through the NLA once and records, per document: the layer-42 activation, the verbalisation the RL verbaliser produced for it, the explanation parsed out of that verbalisation, the generated token ids with per-token KL between the verbaliser and the SFT reference, the reconstruction, and its MSE. Domain, token count, read-out position and the CJK fraction of the explanation come across with each row. Run parameters, seed, the scored FVE and its predict-the-mean baseline are in the file's Parquet metadata.
+
+It was run once, as
+
+```bash
+python extract_traces.py --corpus ffw-5k_corpus.parquet --assets "$ASSETS" \
+    --n 100 --baseline-n 1000 --resume --out ffw-5k_pilot_traces.parquet
+```
+
+with the asset directories under `$ASSETS`. Its output is kept at `results/ffw_pilot_traces.parquet`, which `db/load_traces.py` folds into the `ffw_span-ablation_database` store. It is not re-run: generation is sampled at temperature 1.0 from a 27B model, so a second run draws a different sample.

@@ -5,3 +5,8 @@ torch
 peft
 accelerate
 safetensors
+numpy
+scipy
+pandas
+matplotlib
+spacy

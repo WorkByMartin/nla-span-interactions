@@ -1,6 +1,3 @@
-# Claude staging. Everything starts here; nothing in it is ever committed.
-_scratch/
-
 # Heavy artefacts. Register them in ASSETS.yaml and ship via a GitHub release instead.
 **/weights/
 **/activations*.pt
@@ -21,3 +18,8 @@ _scratch/
 
 # Secrets
 .env
+
+# The project database is shipped as a GitHub release asset (ffw_span-ablation_database)
+db/*.sqlite
+db/*.sqlite-*
+db/snapshots/

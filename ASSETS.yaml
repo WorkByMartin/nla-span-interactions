@@ -12,6 +12,15 @@ qwen36-27b_base_model:
   manifest_sha256: af2eabd8d495584a7fee3acb3fff76d10f87ec050ff6abd8b4fcc01b31f2933e
   date:        2026-08-28
 
+qwen36-27b_tokenizer:
+  kind:        tokenizer
+  status:      held
+  what:        Tokenizer for qwen36-27b_base_model, 22.9 MB across tokenizer.json, vocab.json, merges.txt, tokenizer_config.json and chat_template.jinja. Separate from the model because it is consumed on its own, without the 55.6 GB of weights, by the corpus draw for token counts and read-out positions, by the verbaliser prompt, and by anything rendering traces token by token. Its chat template is load-bearing, since rendering with add_generation_prompt alone leaves the model inside a reasoning block and it never emits an opening explanation tag.
+  produced_by: upstream Qwen
+  location:    https://huggingface.co/Qwen/Qwen3.6-27B @ 6a9e13bd6fc8f0983b9b99948120bc37f49c13e9
+  size:        22.9 MB
+  date:        2026-08-31
+
 qwen36-27b_av-sft_model:
   kind:        model
   status:      held
@@ -46,6 +55,24 @@ qwen36-27b_ar-l43-s600_model:
   date:        2026-07-21
   consumes:    [qwen36-27b_base_model, ffw-100k_corpus]
 
+modernbert-large_filler_model:
+  kind:        model
+  status:      held
+  what:        Bidirectional masked encoder used to propose substitutes for ablated tokens. Masking one position gives p(token | rest of the explanation) directly, which is the conditional marginalisation needs and which a causal model cannot supply. Chosen over other encoders because its tokenizer is OLMo/GPT-NeoX byte-level BPE with the same space-prefix convention as Qwen, so 82.6% of its 50368-token vocabulary encodes to exactly one Qwen token. Substitutes are spliced into the explanation as text and the whole explanation is re-tokenised by Qwen, so a candidate need not be a single Qwen token.
+  produced_by: upstream Answer.AI
+  location:    https://huggingface.co/answerdotai/ModernBERT-large @ 45bb4654a4d5aaff24dd11d4781fa46d39bf8c13
+  size:        1.5 GB
+  date:        2026-09-01
+
+spacy_en-core-web-sm_model:
+  kind:        model
+  status:      held
+  what:        Small English spaCy pipeline (tok2vec, tagger, dependency parser, NER). Supplies word boundaries, Universal Dependencies part-of-speech tags, fine tags and dependency heads for every word of every verbalisation.
+  produced_by: upstream Explosion
+  location:    pip package en-core-web-sm==3.8.0, spaCy 3.8.16
+  size:        12 MB
+  date:        2026-09-02
+
 # ---------------------------------------------------------------------------
 # Corpora
 # ---------------------------------------------------------------------------
@@ -67,28 +94,18 @@ ffw-5k_corpus:
   location:    01_corpus-and-spans/results/ffw-5k_corpus.parquet
   sha256:      43cc3d1d74afafba18e067914f3045263ccb5bbac1408a2cfa54d7ec9761993a
   date:        2026-08-28
-  consumes:    []
+  consumes:    [qwen36-27b_tokenizer]
 
 # ---------------------------------------------------------------------------
 # Traces
 # ---------------------------------------------------------------------------
 
-ffw-5k_pilot_traces:
-  kind:        traces
-  status:      pending
-  what:        100 documents from ffw-5k_corpus carried through the whole NLA once. Each row holds the layer-42 activation, the verbalisation, the reconstruction, FVE, and per-token KL between the RL verbaliser and the SFT reference under identical scaffolding. The set on which the KL threshold is chosen and the substitution fillers are vetted, so decisions are made here and not reported from here.
-  produced_by: pending
-  location:    pending
-  sha256:      pending
-  date:        pending
-  consumes:    [ffw-5k_corpus, qwen36-27b_base_model, qwen36-27b_av-sft_model, qwen36-27b_av-rl-s600_adapter, qwen36-27b_ar-l43-s600_model]
-
-ffw-5k_main_traces:
-  kind:        traces
-  status:      pending
-  what:        The frozen set the interaction results are computed on. Same schema as ffw-5k_pilot_traces, sized against available compute and filtered to 5 <= span count <= 12. Every verbalisation carries both the KL-derived span coding and the random-boundary null coding.
-  produced_by: pending
-  location:    pending
-  sha256:      pending
-  date:        pending
-  consumes:    [ffw-5k_corpus, qwen36-27b_base_model, qwen36-27b_av-sft_model, qwen36-27b_av-rl-s600_adapter, qwen36-27b_ar-l43-s600_model]
+ffw_span-ablation_database:
+  kind:        database
+  status:      held
+  what:        SQLite store for everything computed on the 100-document draw. Holds the documents themselves (layer-42 activation, verbalisation, reconstruction, per-token KL between the RL verbaliser and the SFT reference, drawn as the first 100 of the seed-0 permutation over 1000 candidates), every word span with its part of speech and dependency labels, the masked-LM candidate substitutes per span, every edited variant of a document that was fed to the reconstructor, and its MSE, FVE and token length. One row per reconstructor forward pass. The runs table records which script and assets wrote each row.
+  produced_by: appended to by the numbered experiment scripts; see the runs table
+  location:    db/ffw_span-ablation_database.sqlite, shipped as a GitHub release asset, not yet published
+  size:        196 MB
+  date:        2026-09-02
+  consumes:    [ffw-5k_corpus, qwen36-27b_tokenizer, qwen36-27b_base_model, qwen36-27b_av-sft_model, qwen36-27b_av-rl-s600_adapter, qwen36-27b_ar-l43-s600_model, modernbert-large_filler_model, spacy_en-core-web-sm_model]
