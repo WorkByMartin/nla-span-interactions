@@ -4,8 +4,8 @@
     python arc_vs_control_by_type.py
 
 Reads the PER DEP TYPE table from results/statistics.md, which pair_analysis.py
-wrote from the store, and draws it with each dependency label glossed. Writes
-results/arc_vs_control_by_type.png. No GPU.
+wrote from the store, and draws it with each dependency label glossed. Rows are ordered by the arc mean, most
+overlapping at the top. Writes results/arc_vs_control_by_type.png. No GPU.
 """
 from __future__ import annotations
 
@@ -45,9 +45,10 @@ def main():
     import matplotlib.pyplot as plt
 
     rows = read_table()
+    rows.sort(key=lambda r: r["arc"][0], reverse=True)
     fig, ax = plt.subplots(figsize=(8.0, 4.8))
     fig.subplots_adjust(left=0.36, right=0.97, top=0.88, bottom=0.12)
-    figstyle.floor(ax)
+    ax.axvline(0.0, color="#666666", lw=0.9, zorder=1.6)
     for i, r in enumerate(rows):
         if i % 2 == 0:
             ax.axhspan(i - 0.5, i + 0.5, color="#fafafa", zorder=0)
@@ -67,8 +68,7 @@ def main():
     handles = [plt.Line2D([], [], color=figstyle.SWAP, marker="o", ls="none",
                           ms=5.5, label="pair on a dependency arc"),
                plt.Line2D([], [], color=figstyle.GREY, marker="s", ls="none",
-                          ms=5.5, label="matched control pair, same distance, no arc"),
-               figstyle.floor_handle()]
+                          ms=5.5, label="matched control pair, same distance, no arc")]
     ax.legend(handles=handles, ncol=2, loc="lower center",
               bbox_to_anchor=(0.5, 1.0))
     ax.set_ylabel("dependency type, and the number of arc pairs")
