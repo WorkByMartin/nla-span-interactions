@@ -73,6 +73,16 @@ spacy_en-core-web-sm_model:
   size:        12 MB
   date:        2026-09-02
 
+stanza_en-combined_model:
+  kind:        model
+  status:      held
+  what:        Stanza default English package (tokenize, mwt, pos, lemma, depparse), the combined_charlm models trained on the combined English UD treebanks with conll17 word vectors and 1billion character LMs. Universal Dependencies v2 labels. Supplies word boundaries, Universal Dependencies part-of-speech tags and dependency arcs for the verbalisations.
+  produced_by: upstream Stanford NLP
+  location:    stanza.download('en', processors='tokenize,pos,lemma,depparse'), stanza 1.14.0; 8 model files under en/{tokenize,mwt,pos,lemma,depparse,pretrain,forward_charlm,backward_charlm}/
+  size:        337 MB
+  manifest_sha256: 5fec72b6a218239638c04d8febe97ab123c579983175356eb5e81fdfa2c12520
+  date:        2026-09-21
+
 # ---------------------------------------------------------------------------
 # Corpora
 # ---------------------------------------------------------------------------
@@ -108,4 +118,4 @@ ffw_span-ablation_database:
   location:    db/ffw_span-ablation_database.sqlite, shipped as a GitHub release asset, not yet published
   size:        196 MB
   date:        2026-09-02
-  consumes:    [ffw-5k_corpus, qwen36-27b_tokenizer, qwen36-27b_base_model, qwen36-27b_av-sft_model, qwen36-27b_av-rl-s600_adapter, qwen36-27b_ar-l43-s600_model, modernbert-large_filler_model, spacy_en-core-web-sm_model]
+  consumes:    [ffw-5k_corpus, qwen36-27b_tokenizer, qwen36-27b_base_model, qwen36-27b_av-sft_model, qwen36-27b_av-rl-s600_adapter, qwen36-27b_ar-l43-s600_model, modernbert-large_filler_model, spacy_en-core-web-sm_model, stanza_en-combined_model]
