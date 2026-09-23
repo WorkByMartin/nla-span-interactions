@@ -115,7 +115,7 @@ ffw_span-ablation_database:
   status:      held
   what:        SQLite store for everything computed on the 100-document draw. Holds the documents themselves (layer-42 activation, verbalisation, reconstruction, per-token KL between the RL verbaliser and the SFT reference, drawn as the first 100 of the seed-0 permutation over 1000 candidates), every word span with its part of speech and dependency labels, the masked-LM candidate substitutes per span, every edited variant of a document that was fed to the reconstructor, and its MSE, FVE and token length. One row per reconstructor forward pass. The runs table records which script and assets wrote each row.
   produced_by: appended to by the numbered experiment scripts; see the runs table
-  location:    db/ffw_span-ablation_database.sqlite, shipped as a GitHub release asset, not yet published
-  size:        196 MB
+  location:    db/ffw_span-ablation_database.sqlite, held privately and not distributed
+  size:        1.3 GB
   date:        2026-09-02
   consumes:    [ffw-5k_corpus, qwen36-27b_tokenizer, qwen36-27b_base_model, qwen36-27b_av-sft_model, qwen36-27b_av-rl-s600_adapter, qwen36-27b_ar-l43-s600_model, modernbert-large_filler_model, spacy_en-core-web-sm_model, stanza_en-combined_model]
